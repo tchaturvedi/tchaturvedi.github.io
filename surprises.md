@@ -22,7 +22,17 @@ Format per entry:
 
 ## chamberlain
 
-_No entries yet._
+### 2026-09-11 — `just up` works, ArgoCD sync doesn't (yet)
+
+- **Expected:** `just up` would bring up a kind cluster with ArgoCD synced against
+  `chamberlain-state`, fully green, since both repos exist and the `Application` manifest is
+  correct.
+- **Actually:** cluster creation and ArgoCD install succeed cleanly, but the `Application`
+  errors with `authentication required` — `chamberlain-state` only exists as a local repo, not
+  pushed to GitHub, so ArgoCD can't clone it.
+- **Changed:** nothing yet — deliberately left unpushed for now. `just up`/`just down` are
+  verified as far as they can be without a remote; the Stage 0 checklist item isn't fully clear
+  until `chamberlain-state` (and `chamberlain`) are pushed to GitHub.
 
 ## chamberlain-state
 
