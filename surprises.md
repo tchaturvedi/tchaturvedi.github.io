@@ -34,6 +34,17 @@ Format per entry:
   verified as far as they can be without a remote; the Stage 0 checklist item isn't fully clear
   until `chamberlain-state` (and `chamberlain`) are pushed to GitHub.
 
+### 2026-09-11 — repos pushed, sync green after a flaky first refresh
+
+- **Expected:** once `chamberlain`, `chamberlain-state`, and `usurper` were pushed to GitHub,
+  `just up` would sync clean on the first try.
+- **Actually:** the `Application` first reported `ComparisonError: connection refused` to
+  `argocd-repo-server:8081` — the application-controller raced the repo-server's own startup.
+  A hard refresh (`kubectl annotate ... argocd.argoproj.io/refresh=hard`) immediately resolved
+  it; `chamberlain-placeholder` namespace confirmed live in-cluster afterward.
+- **Changed:** nothing in the justfile for now — a one-off startup race on a fresh install, not
+  a real sync issue. Worth adding a short wait/retry in `just up` if it recurs.
+
 ## chamberlain-state
 
 _No entries yet._
