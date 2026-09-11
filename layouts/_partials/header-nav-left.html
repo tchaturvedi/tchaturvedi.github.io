@@ -1,0 +1,5 @@
+{{ $section := .Section }}
+<nav class="header-nav header-nav--left">
+  <a href="{{ "/projects/" | relURL }}" class="header-nav__link{{ if eq $section "projects" }} active{{ end }}">Projects</a>
+  <a href="{{ "/posts/" | relURL }}" class="header-nav__link{{ if eq $section "posts" }} active{{ end }}">Writing</a>
+</nav>

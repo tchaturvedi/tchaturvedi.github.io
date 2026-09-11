@@ -1,0 +1,14 @@
+{{ define "main" }}
+  <a class="back-link" href="{{ "/projects/" | relURL }}">← Projects</a>
+  <h1>
+    {{ .Title }}
+    <span class="status {{ .Params.status }}">{{ .Params.status }}</span>
+  </h1>
+  <p class="tagline">
+    {{ with .Params.repo }}<a href="{{ . }}">Repo</a>{{ end }}
+    {{ with .Params.demoUrl }} · <a href="{{ . }}">Demo</a>{{ end }}
+  </p>
+  <article>
+    {{ .Content }}
+  </article>
+{{ end }}

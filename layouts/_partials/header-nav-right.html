@@ -1,0 +1,4 @@
+<div class="header-nav header-nav--right">
+  {{ partial "theme-toggle.html" . }}
+  {{ with .Site.Params.githubURL }}<a href="{{ . }}" class="header-nav__link">GitHub</a>{{ end }}
+</div>

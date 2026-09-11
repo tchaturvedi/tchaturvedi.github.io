@@ -1,0 +1,17 @@
+{{ $size := .size | default 22 }}
+<svg
+  class="crest"
+  width="{{ $size }}"
+  height="{{ mul $size 1.15 }}"
+  viewBox="0 0 24 28"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+>
+  <path
+    d="M12 1.5 L21.5 5 V13.5 C21.5 20 17 24.5 12 26.5 C7 24.5 2.5 20 2.5 13.5 V5 Z"
+    stroke="currentColor"
+    stroke-width="1.3"
+  />
+  <path d="M12 9 L15 13.5 L12 18 L9 13.5 Z" stroke="currentColor" stroke-width="1.1" />
+</svg>

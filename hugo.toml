@@ -1,0 +1,14 @@
+baseURL = "https://tchaturvedi.github.io/"
+languageCode = "en-us"
+title = "Tushar Chaturvedi"
+enableGitInfo = false
+
+[params]
+  githubURL = "https://github.com/tchaturvedi"
+  tagline = "Senior Software Engineer — Platform & Distributed Systems"
+
+[minify]
+  disableXML = true
+
+[outputs]
+  home = ["HTML", "RSS"]

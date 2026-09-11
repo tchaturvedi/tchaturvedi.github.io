@@ -1,0 +1,69 @@
+<script>
+  (function () {
+    // Only pay for Mermaid on pages that actually use it — most won't.
+    if (!document.querySelector('.mermaid')) return;
+
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    // Read the site's own palette live, rather than duplicating hex values
+    // here — diagrams then always match the current theme automatically,
+    // including the toggle, with nothing to keep in sync by hand.
+    function themeVariables() {
+      return {
+        background: cssVar('--paper'),
+        primaryColor: cssVar('--paper'),
+        primaryTextColor: cssVar('--ink'),
+        primaryBorderColor: cssVar('--accent'),
+        lineColor: cssVar('--ink-dim'),
+        secondaryColor: cssVar('--bg'),
+        tertiaryColor: cssVar('--rule'),
+        actorBkg: cssVar('--paper'),
+        actorBorder: cssVar('--accent'),
+        actorTextColor: cssVar('--ink'),
+        signalColor: cssVar('--ink-dim'),
+        signalTextColor: cssVar('--ink'),
+        labelBoxBkgColor: cssVar('--paper'),
+        labelBoxBorderColor: cssVar('--rule'),
+        noteBkgColor: cssVar('--bg'),
+        noteBorderColor: cssVar('--rule'),
+        fontFamily: cssVar('--sans'),
+      };
+    }
+
+    var rendered = false;
+
+    function render(mermaid) {
+      mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: themeVariables() });
+      document.querySelectorAll('pre.mermaid').forEach(function (el) {
+        if (!el.dataset.rawSource) el.dataset.rawSource = el.textContent;
+        el.removeAttribute('data-processed');
+        el.innerHTML = el.dataset.rawSource;
+      });
+      mermaid.run({ querySelector: '.mermaid' }).then(function () {
+        rendered = true;
+      });
+    }
+
+    var loader = document.createElement('script');
+    loader.type = 'module';
+    loader.textContent =
+      "import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';" +
+      "window.dispatchEvent(new CustomEvent('mermaid-loaded', { detail: mermaid }));";
+    document.head.appendChild(loader);
+
+    window.addEventListener('mermaid-loaded', function (e) {
+      var mermaid = e.detail;
+      render(mermaid);
+      // Re-render on theme toggle so diagrams follow light/dark like
+      // everything else on the page.
+      var toggle = document.getElementById('theme-toggle');
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          if (rendered) setTimeout(function () { render(mermaid); }, 0);
+        });
+      }
+    });
+  })();
+</script>
