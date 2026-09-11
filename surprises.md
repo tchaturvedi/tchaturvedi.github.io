@@ -45,6 +45,33 @@ Format per entry:
 - **Changed:** nothing in the justfile for now — a one-off startup race on a fresh install, not
   a real sync issue. Worth adding a short wait/retry in `just up` if it recurs.
 
+### 2026-09-11 — `+kubebuilder:rbac` markers on a struct generate nothing, silently
+
+- **Expected:** `+kubebuilder:rbac:...` marker comments placed directly above the
+  `TenantReconciler`/`WorkloadReconciler` struct types (the pattern shown in every kubebuilder
+  tutorial) would generate `config/rbac/role.yaml` via `controller-gen rbac:roleName=...`.
+- **Actually:** `controller-gen` exited 0 with zero bytes of output, no error, no file, on both
+  v0.16.5 and v0.22.0. Isolated in a minimal throwaway module: the marker's registered `target`
+  is `"package"` (confirmed via `controller-gen rbac -wwww`), and in practice it's only collected
+  when it's on a **package-level doc comment**, not when attached to an arbitrary type — despite
+  `object`/`crd` generators happily reading markers off types in the same files.
+- **Changed:** moved all `+kubebuilder:rbac` markers into a dedicated `internal/controller/doc.go`
+  package comment instead of decorating the reconciler structs. No other generator was affected.
+
+### 2026-09-11 — a controller can't grant a Role more than it itself holds
+
+- **Expected:** `TenantReconciler` creating a namespace-scoped `Role` with
+  `{APIGroups:["*"],Resources:["*"],Verbs:["*"]}` for each tenant would just work — the manager's
+  own ClusterRole is separate from what it hands out to tenants.
+- **Actually:** `roles.rbac.authorization.k8s.io "tenant-owner" is forbidden: ... attempting to
+  grant RBAC permissions not currently held`. Kubernetes' RBAC escalation-prevention check blocks
+  any principal from creating a Role/ClusterRole/Binding that grants more than it itself holds —
+  a wildcard tenant Role would need a wildcard manager ClusterRole, defeating least-privilege.
+- **Changed:** scoped `tenant-owner` down to read-only on `workloads`/`deployments`/`services`/
+  `pods` — a real subset of `manager-role` — instead of a wildcard. This is arguably the correct
+  design anyway (Stage 1 doesn't need tenants to have full namespace admin), but it wasn't a
+  deliberate choice until the escalation check forced it.
+
 ## chamberlain-state
 
 _No entries yet._
