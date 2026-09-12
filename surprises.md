@@ -72,6 +72,34 @@ Format per entry:
   design anyway (Stage 1 doesn't need tenants to have full namespace admin), but it wasn't a
   deliberate choice until the escalation check forced it.
 
+### 2026-09-12 — ArgoCD's `timeout.reconciliation` doesn't bound git-commit detection latency
+
+- **Expected:** setting `argocd-cm`'s `timeout.reconciliation` to `10s` (and confirming via logs
+  that `appResyncPeriod=10s` and the controller genuinely reconciles every ~6-10s) would mean a
+  fresh commit to `chamberlain-state` gets picked up within ~10s.
+- **Actually:** it didn't. A commit at `14:40:15Z` wasn't reflected in the `Application`'s
+  resource list until `14:42:29Z` — ~134s later — despite the controller visibly reconciling the
+  whole time. The resync loop re-compares against the *last known remote revision*, and
+  discovering a *new* remote revision is gated by the repo-server's own git-fetch/cache path,
+  which `timeout.reconciliation` doesn't control. Never isolated the exact repo-server setting;
+  didn't chase it further given the "leave it pure GitOps" decision already accepted this
+  tradeoff.
+- **Changed:** bumped the API's poll timeout from 90s to 240s so `chamberlain workload create`
+  fails on genuine breakage rather than on normal GitOps propagation latency. Also caught (and
+  fixed) two other real bugs this exposed: ArgoCD's plain-directory source doesn't recurse into
+  subdirectories by default (`tenants/<name>/tenant.yaml` was silently ignored until
+  `directory.recurse: true` was added to the `Application`), and CRDs must be applied *before*
+  the application-controller's first start or its API-discovery cache goes stale for every
+  `Application` until the controller is restarted — `just up` now applies CRDs and restarts the
+  controller before creating the `Application`.
+
+**Evidence — Stage 1's "time from create to serving" metric:** `chamberlain workload create
+--tenant acme --name hello --image nginx:alpine` on a fresh `just up` cluster: **98.5s**
+(server-measured: 98521ms), commit `chamberlain@520371b`, harness: `cmd/chamberlain` +
+`cmd/api` as built in this repo. This number is almost entirely ArgoCD GitOps propagation
+latency, not chamberlain's own code — worth revisiting if a later stage needs faster
+tenant-facing turnaround.
+
 ## chamberlain-state
 
 _No entries yet._
